@@ -1,9 +1,17 @@
-import telebot
+import os
+try:
+    import telebot
+except:
+    os.system("pip3 install pyTelegramBotAPI")
+    import telebot
 from telebot import types
 from mybottoken import mytoken
-import mysql.connector
+try:
+    import mysql.connector
+except:
+    os.system("pip3 install mysql-connector")
+    import mysql.connector
 import myhost
-import os
 import time
 from math import ceil
 mh = myhost.MyHostForumuzOffline
