@@ -15,7 +15,7 @@ import myhost
 import time
 from math import ceil
 mh = myhost.MyHostForumuzOffline
-bot = telebot.TeleBot(mytoken[1])
+bot = telebot.TeleBot(mytoken)
 
 def soxa():
     s = [
