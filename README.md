@@ -1,2 +1,2 @@
-# akmal
-# Forumuz \nTo\'liq yakunlanmagan
+# Forumuz
+To\'liq yakunlanmagan
