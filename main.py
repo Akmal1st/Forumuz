@@ -1,17 +1,9 @@
-import os
-try:
-    import telebot
-except:
-    os.system("pip3 install pyTelegramBotAPI")
-    import telebot
+import telebot
 from telebot import types
 from mybottoken import mytoken
-try:
-    import mysql.connector
-except:
-    os.system("pip3 install mysql-connector")
-    import mysql.connector
+import mysql.connector
 import myhost
+import os
 import time
 from math import ceil
 mh = myhost.MyHostForumuzOffline
@@ -21,8 +13,9 @@ def soxa():
     s = [
         'Matematika','Fizika','Kimyo','Java','Python',
         'C++','C#','Linux','Windows','MacOS','Algebra',
-        'Geometriya','Chizmachilik','Biologiya','Kino',
-        'Android']
+        'Geometriya','Chizmachilik','Biologiya','Telegram Bot',
+        'Android'
+        ]
     s.sort()
     return s
 
@@ -122,15 +115,6 @@ def users():
 def helpMessage():
     text = f"Botdan foydalanish:\nOxirgi yangilanish: {fut()}\n* Savolingizni shunday yozavering\n* Savolingizni xato yozdingizmi? Unda savolingizni shunchaki to'g'irlang\n* Javob berish uchun shunchaki \"reply\" qilib yozing\n* Hammasini qilib bo'lgach \"'OK\" tugmasini bosing\n\"Ok\" tugmasini bosgandan keyin o'zgartira olmaysiz\n* Xabaringiz o'chirish uchun \"Bekor qilish\" tugmasini bosing\n* Savolingiz yoki javobingiz yuborilganini tagidagi tugmalar yo'q bo'lib qolganda bilasiz"
     return text
-    
-def mess(text):
-    text2=''
-    for x in range(len(text)):
-        if text[x]=="'":
-            text2+='`'
-        else:
-            text2+=text[x]
-    return text2
 
 def user_soxa(user_id):
     try:
@@ -140,7 +124,8 @@ def user_soxa(user_id):
         mydb.execute(f"SELECT soxa FROM forumuz.users WHERE user_id='{user_id}'")
         for x in mydb:
             if x[0]!=None:
-                s=x[0].split(',')
+                s=x[0].split(';')
+                s=[s[x] for x in range(len(s)) if s[x]!='']
             else:
                 s.append('None')
         db.close()
@@ -153,53 +138,64 @@ def editor(m,pg=None,edit=None, sb=soxa(),text=None):
         pass
     except:
         pass
+
+def qolip(text=None, hashtag=None):
+    l = len(text)
+    head = text[:text.find(':')]
+    f = text.rfind(';')
+    if f==-1:
+        foot = text[text.find(':')+1:]
+    else:
+        foot = text[f+1:]
+    hash = text[len(head):l-len(foot)]
+    if f!=-1:
+        if hashtag in hash:
+            hash = hash[:hash.find(hashtag)]+hash[hash.find(hashtag)+len(hashtag):]
+        else:
+            hash = hash+hashtag
+    else:
+        hash = hash+hashtag
+    txt = head + hash + foot
+    return txt
     
-def begins(message,edited=None):
+def begins(m,edited=None,k=None):
+    is_new_users(user_id=m.chat.id)
     try:
-        is_new_users(user_id=message.chat.id)
-        mode=''
-        savol=0
+        text = m.reply_to_message.text
+    except:
+        text = m.text
+    mode = "savol"
+    mid = m.message_id
+    s = user_soxa(m.chat.id)
+    if (("#savol" in text) or ("#javob" in text)) and (m.reply_to_message.entities[0].type=="hashtag"):
+        mode = "javob"
+        mid = m.reply_to_message.message_id
+        s=['None']
         try:
-            text = message.reply_to_message.text
+            bot.edit_message_text(chat_id=m.chat.id, message_id=mid, text=m.reply_to_message.text)
         except:
             pass
-        if message.reply_to_message==None:
-            mode = "savol"
-            mid = message.message_id
-        elif (("#savol" in text) or ("#javob" in text)) and (message.reply_to_message.entities[0].type=="hashtag"):
-            mode = "javob"
-            mid = message.reply_to_message.message_id
-            try:
-                bot.edit_message_text(chat_id=message.chat.id, message_id=mid, text=message.reply_to_message.text)
-            except:
-                pass
-        else:
-             pass
-        s = user_soxa(message.chat.id)
-        sv = types.InlineKeyboardMarkup()
-        
-        if message.reply_to_message==None:
-            if s[0]!=None:
-                for x in range(len(s)):
-                    sv.add(IKB(t=f"#{s[x]}", c=f"hashtag_{x+1}"))
-        
-        b1 = IKB(t="Ok",c=f"Ok_{mode}")
-        b2 = IKB(t="Bekor qilish",c="cancel")
-        sv.add(b1,b2)
-        
-        if edited==False:
-            bot.send_message(chat_id=message.chat.id, text=f"#{mode} {message.text}", reply_markup=sv, reply_to_message_id=mid)
-        elif edited==True:
-            bot.edit_message_text(chat_id=message.chat.id, message_id=mid+1, text=f"#{mode} {message.text}", reply_markup=sv)
-    except:
-        pass
+    else:
+         pass
+    
+    sv = types.InlineKeyboardMarkup()
+    print(s)
+    if s[0]!='None':
+        for x in range(len(s)):
+            sv.add(IKB(t=f"#{s[x]}", c=f"hashtag_{x}"))
+    sv.add(IKB(t="Ok",c=f"Ok_{mode}"), IKB(t="Bekor qilish",c="cancel"))
+    base = f"#{mode}: {m.text}"
+    if edited==False:
+        txt = base
+        bot.send_message(chat_id=m.chat.id, text=txt, reply_markup=sv, reply_to_message_id=mid)
+    elif edited==True:
+        txt = qolip(text=m.text, hashtag='\n#'+s[k]+';')
+        bot.edit_message_text(chat_id=m.chat.id, message_id=mid, text=txt, reply_markup=sv)
 
 def example(m,pg=None,edit=None, sb=soxa(),text=None):
     key = types.InlineKeyboardMarkup()
     pgl=6
     pgn=[0,ceil(len(sb)/pgl)]
-    
-    bs = [['Tayyor','ok'], ['Bekor qilish','cancel']]
     if pg==None:
         if m.text[:2].isdigit()==True:
             cpg = int(m.text[:2])
@@ -215,42 +211,25 @@ def example(m,pg=None,edit=None, sb=soxa(),text=None):
         cpg = pgn[1] 
     elif cpg > pgn[1]:
         cpg = pgn[0]+1
+        
     names = button_key(pages=cpg-1,N=pgl,soxa=sb, key='fan')
     keys = list(names.keys())
     base = '%.2d. Yo\'nalish tanlang:' % cpg
-    rem=0
-    if len(m.text[len(base):])==0:
-        fanlar = ''
-    else:
-        fanlar = m.text[len(base):]
-        st = fanlar.split('\n')
-        if text!=None:
-            if names[text] in st:
-                rem=1
     for x in range(len(keys)):
         key.add(IKB(t=names[keys[x]], c=keys[x]))
     key.add(IKB(t='<',c='p') , IKB(t=f'{cpg}-sahifa',c='center') , IKB(t='>',c='n') )
-    key.add(IKB(t=bs[0][0], c=bs[0][1]),IKB(t=bs[1][0], c=bs[1][1]))
+    key.add(IKB(t='Tayyor', c='ok'),IKB(t='Bekor qilish', c='cancel'))
     
-    if text==None and pg==None:
-        txt = base
-    elif text==None and pg!=None:
-        txt = base + fanlar
-    elif text!=None and pg==None:
-        if len(base)==len(m.text):
-            txt = base + '\n' + names[text]
-        elif rem==0:
-            txt = base + fanlar + '\n' + names[text]
-        elif rem==1:
-            fanlar=''
-            for y in range(len(st)):
-                if names[text]!=st[y] and st[y]!='':
-                    fanlar+='\n'+st[y]
-                
-            txt = base + fanlar    
+     
+    a = base+m.text[len(base):] 
     if edit==None:
+        txt = base
         bot.send_message(m.chat.id,txt,reply_markup=key)
     elif edit!=None:
+        if text==None:
+            txt = a
+        else:
+            txt = qolip(text=a, hashtag='\n'+names[text]+';')
         bot.edit_message_text(chat_id=m.chat.id, message_id=edit, text=txt, reply_markup=key)
 
         
@@ -259,6 +238,7 @@ def starts(m):
     bot.send_message(m.chat.id, f"Assalomu alaykum {m.from_user.first_name}")
     is_new_users(user_id=m.chat.id)
     bot.send_message(m.chat.id,helpMessage())
+    example(m)
     
 @bot.message_handler(commands=['help'])
 def help(message):
@@ -286,15 +266,15 @@ def edited(message):
 def tasdiq(call):
     if call.message:
         if call.data[:4]=='fan_':
-            example(m=call.message, edit=call.message.message_id, sb=soxa() , text=call.data)
+            example(m=call.message, edit=call.message.message_id, text=call.data)
         
         elif call.data[:8]=='hashtag_':
-            editor(m=call.message, edit=call.message.message_id, sb=user_soxa(call.message.chat.id) ,text=call.data)
+            begins(call.message, edited=True,k=int(call.data[8:]))
         elif call.data=='ok':
             try:
                 db = connects()
                 mydb = db.cursor()
-                mess = call.message.text[call.message.text.rfind(':')+2:].replace('\n',',')
+                mess = call.message.text[call.message.text.rfind(':')+2:].replace('\n','')
                 print(mess)
                 mydb.execute(f"UPDATE forumuz.users SET soxa='{mess}' WHERE user_id='{call.message.chat.id}'")
                 db.commit()
@@ -313,7 +293,7 @@ def tasdiq(call):
             mydb = db.cursor()
             u=users()
             key = types.InlineKeyboardMarkup()
-            but1 = types.InlineKeyboardButton(text="Bilmayman", callback_data="Delete")
+            but1 = types.InlineKeyboardButton(text="Bekor qilish", callback_data="cancel")
             key.add(but1)
             for x in u:
                 if int(x)!=call.message.chat.id:
@@ -325,7 +305,7 @@ def tasdiq(call):
                         mydb.execute(f"UPDATE forumuz.users SET onbot=0 WHERE user_id={x}")
                         db.commit()
             db.close()
-            savol_javob(mode="savol",user_id=call.message.chat.id,text=mess(call.message.text)[7:])
+            savol_javob(mode="savol",user_id=call.message.chat.id,text=call.message.text[8:].replace('\'','`'))
             bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=call.message.text)
             bot.answer_callback_query(callback_query_id=call.id,show_alert=False, text="Savol barcha bot foydalanuvchilariga yuborildi")
         elif call.data=="Ok_javob":
@@ -352,7 +332,7 @@ def tasdiq(call):
                             mydb.execute(f"UPDATE forumuz.users SET onbot=0 WHERE user_id={x[2]}")
                             db.commit()
                         break
-                savol_javob(mode="javob",user_id=call.message.chat.id,savol_id=x[0],text=mess(call.message.text)[7:])
+                savol_javob(mode="javob",user_id=call.message.chat.id,savol_id=x[0],text=call.message.text[8:].replace('\'','`'))
                 bot.answer_callback_query(callback_query_id=call.id,show_alert=False, text="Javob savol beruvchiga yuborildi")
             elif ('#javob' in txt):
                 mydb.execute("SELECT * FROM forumuz.javob")
@@ -366,7 +346,7 @@ def tasdiq(call):
                             mydb.execute(f"UPDATE forumuz.users SET onbot=0 WHERE user_id={x[2]}")
                             db.commit()
                         break
-                savol_javob(mode="javob",user_id=call.message.chat.id,javob_id=x[0],text=mess(call.message.text)[7:])
+                savol_javob(mode="javob",user_id=call.message.chat.id,javob_id=x[0],text=mess(call.message.text)[8:])
                 bot.answer_callback_query(callback_query_id=call.id,show_alert=False, text="Javobga xabar yuborildi")
             db.close()
             bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,text=call.message.text)
