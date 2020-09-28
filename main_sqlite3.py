@@ -12,10 +12,9 @@ while True:
         
         def soxa():
             s = [
-                'Matematika','Fizika','Kimyo','Java','Python',
-                'C++','C#','Linux','Windows','MacOS','Algebra',
-                'Geometriya','Chizmachilik','Biologiya','Telegram_Bot',
-                'Android'
+                'Matematika','Fizika','Kimyo','Java','Python','C++',
+                'C#','Linux','Windows','MacOS','Algebra','Geometriya',
+                'Chizmachilik','Biologiya','Telegram_Bot','Android'
                 ]
             s.sort()
             return s
@@ -25,9 +24,9 @@ while True:
             p = pages*N
             fan={}
             if p<l and key!=None:
-                for x in range(0,N+1):
+                for x in range(1,N+1):
                     if (p+x)<l:
-                        name=f'{key}_{x+1}'
+                        name=f'{key}_{x}'
                         fan[name]=soxa[p+x]
                     else:
                         break
@@ -162,16 +161,21 @@ while True:
                 pass
                 
         def qolip(text=None, hashtag=None):
-            print(text)
+            #print(text)
             l = len(text)
-            head = text[:text.find(':')+1]
-            f = text.rfind(';\n')
+            d = text.find(':')
+            head = text[:d+1]
+            f = text.rfind(';')
+            k=d-l+1
             if f==-1:
-                foot = text[text.find(':\n')+1:]
+                if k!=0:
+                    foot = text[d+1:]
+                else:
+                    foot = ''
             else:
                 foot = text[f+1:]
             hash = text[len(head):l-len(foot)]
-            print(l, len(head), len(hash), len(foot), f)
+            #print(l, len(head), len(hash), len(foot), f)
             if f!=-1:
                 if hashtag in hash:
                     hash = hash[:hash.find(hashtag)]+hash[hash.find(hashtag)+len(hashtag):]
@@ -241,7 +245,7 @@ while True:
                 
             names = button_key(pages=cpg-1,N=pgl,soxa=sb, key='fan')
             keys = list(names.keys())
-            base = '%.2d. Yo\'nalish tanlang:' % cpg
+            base = '%.2d. Yo\'nalish tanlang:\n' % cpg
             for x in range(len(keys)):
                 key.add(IKB(t=names[keys[x]], c=keys[x]))
             key.add(IKB(t='<',c='p') , IKB(t=f'{cpg}-sahifa',c='center') , IKB(t='>',c='n') )
@@ -299,17 +303,27 @@ while True:
                     begins(call.message, edited=True,k=int(call.data[8:]))
                 elif call.data=='ok':
                     try:
+                        i=1
                         db = connects()
+                        i=2
                         mydb = db.cursor()
+                        i=3
                         mess = call.message.text[call.message.text.rfind(':')+2:].replace('\n','')
-                        #print(mess)
+                        i=4
+                        print(mess)
+                        i=5
                         mydb.execute(f"UPDATE users SET soxa='{mess}' WHERE user_id='{call.message.chat.id}';")
+                        i=6
                         db.commit()
+                        i=7
                         db.close()
+                        i=8
                         bot.send_message(call.message.chat.id, mess)
+                        i=9
                         bot.delete_message(call.message.chat.id,call.message.message_id)
                     except:
                         bot.answer_callback_query(callback_query_id=call.id, show_alert=True, text='Xatolik')
+                    print('>>>i =',i)
                 elif call.data=='n':
                     example(m=call.message, pg='n', edit=call.message.message_id)
                 elif call.data=='p':
@@ -340,6 +354,7 @@ while True:
                                             bor=True
                                 if ht==0:
                                     sanoq=-1    
+                                    break
                                 if bor:
                                     bot.send_message(int(x),f"\"{call.message.chat.first_name}\" dan\n{call.message.text}",reply_markup=key)
                                     print('>>> ok_savol')
