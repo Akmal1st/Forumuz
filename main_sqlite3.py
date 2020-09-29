@@ -13,8 +13,8 @@ while True:
         def soxa():
             s = [
                 'Matematika','Fizika','Kimyo','Java','Python','C++',
-                'C#','Linux','Windows','MacOS','Algebra','Geometriya',
-                'Chizmachilik','Biologiya','Telegram_Bot','Android'
+                'C#','Linux','Windows','MacOS','Biologiya','Geografiya'
+                'Telegram_Bot','Android','Informatika'
                 ]
             s.sort()
             return s
@@ -23,8 +23,8 @@ while True:
             l = len(soxa)
             p = pages*N
             fan={}
-            if p<l and key!=None:
-                for x in range(1,N+1):
+            if p<=l and key!=None:
+                for x in range(0,N):
                     if (p+x)<l:
                         name=f'{key}_{x}'
                         fan[name]=soxa[p+x]
@@ -140,7 +140,19 @@ while True:
                 pass 
                 
         def helpMessage():
-            text = f"Botdan foydalanish:\nOxirgi yangilanish: {fut()}\n* Savolingizni shunday yozavering\n* Savolingizni xato yozdingizmi? Unda savolingizni shunchaki to'g'irlang\n* Javob berish uchun shunchaki \"reply\" qilib yozing\n* Hammasini qilib bo'lgach \"'OK\" tugmasini bosing\n\"Ok\" tugmasini bosgandan keyin o'zgartira olmaysiz\n* Xabaringiz o'chirish uchun \"Bekor qilish\" tugmasini bosing\n* Savolingiz yoki javobingiz yuborilganini tagidagi tugmalar yo'q bo'lib qolganda bilasiz"
+            text = f'''
+Botdan foydalanish:
+Oxirgi yangilanish: {fut()}
+* Savolingizni shunday yozavering
+* Savolingizni xato yozdingizmi? Unda savolingizni shunchaki to'g'irlang
+* Javob berish uchun shunchaki \"reply\" qilib yozing
+* Hammasini qilib bo'lgach \"'OK\" tugmasini bosing
+\"Ok\" tugmasini bosgandan keyin o'zgartira olmaysiz
+* Xabaringiz o'chirish uchun \"Bekor qilish\" tugmasini bosing
+* Savolingiz yoki javobingiz yuborilganini tagidagi tugmalar yo'q bo'lib qolganda bilasiz
+
+!!! Botda muammo yoki taklifingiz bo\'lsa, 
+/adminga "xabar" jo\'nating '''
             return text
             
         def user_soxa(user_id):
@@ -260,7 +272,9 @@ while True:
                 if text==None:
                     txt = a
                 else:
+                    print('>>',names[text])
                     txt = qolip(text=a, hashtag='\n'+names[text]+';')
+                    print('>>>',txt)
                 bot.edit_message_text(chat_id=m.chat.id, message_id=edit, text=txt, reply_markup=key)
         
                 
@@ -284,7 +298,11 @@ while True:
             k = user_soxa(m.chat.id)
             for x in k:
                 bot.send_message(m.chat.id,x)
-        
+        @bot.message_handler(commands=['adminga'])
+        def adminga(m):
+            t = m.text
+            if t.find(' ')!=-1:
+                bot.send_message(578017143, f"[{m.chat.first_name}](tg://user?id={m.chat.id})\'dan\n{t[t.find(' ')+1:]}", parse_mode='MARKDOWN')
         @bot.message_handler(content_types=["text"])
         def standart(message):
             begins(message, edited=False)
@@ -336,7 +354,7 @@ while True:
                     but1 = types.InlineKeyboardButton(text="Bekor qilish", callback_data="cancel")
                     key.add(but1)
                     text = call.message.text#[call.message.text.rfind('\n')+1:]
-                    sanoq=0
+                    sanoq=soni=0
                     ht = hashtags(text)
                     if ht!=0:
                         ht = ht.replace("#","")
@@ -361,13 +379,14 @@ while True:
                                     bot.send_message(int(x),f"\"{call.message.chat.first_name}\" dan\n{call.message.text}",reply_markup=key)
                                     #print('>>> ok_savol')
                                     sanoq=1
+                                    soni+=1
                                 except:
                                     #bot.send_message(call.message.chat.id,f"{x} id egasi mavjud emas")
                                     mydb.execute(f"UPDATE users SET onbot=0 WHERE user_id={x};")
                                     db.commit()
                             else:
                                 pass
-                    ma = ['Siz yo\'nalish tanlamagansiz!!','Siz tanlagan yo\'nalishda foydalanuvchi mavjud emas',"Savol barcha bot foydalanuvchilariga yuborildi"]
+                    ma = ['Siz yo\'nalish tanlamagansiz!!','Siz tanlagan yo\'nalishda foydalanuvchi mavjud emas',f"Savol barcha shu yo\'nalishdagi( {soni}ta ) bot foydalanuvchilariga yuborildi"]
                     bot.answer_callback_query(callback_query_id=call.id,show_alert=True, text=ma[sanoq+1])
                         
                     db.close()
