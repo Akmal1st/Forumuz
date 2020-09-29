@@ -63,11 +63,11 @@ while True:
                 mydb.execute("CREATE TABLE IF NOT EXISTS javob(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,javob text, user_id text NOT NULL, savol_id INTEGER, javob_id INTEGER, FOREIGN KEY (savol_id) REFERENCES savol(id), FOREIGN KEY (javob_id) REFERENCES javob(id) );")
                 i=8
                 db.commit()
-                print('connected')
+                #print('connected')
                 return db
             except:
                 pass
-            print(i)
+            #print(i)
             
         def hashtags(m):
             a = m.find(':\n')
@@ -195,7 +195,7 @@ while True:
             mode = "savol"
             mid = m.message_id
             s = user_soxa(m.chat.id)
-            print(s)
+            #print(s)
             if (("#savol" in text) or ("#javob" in text)) and (m.reply_to_message.entities[0].type=="hashtag"):
                 mode = "javob"
                 mid = m.reply_to_message.message_id
@@ -310,7 +310,7 @@ while True:
                         i=3
                         mess = call.message.text[call.message.text.rfind(':')+2:].replace('\n','')
                         i=4
-                        print(mess)
+                        #print(mess)
                         i=5
                         mydb.execute(f"UPDATE users SET soxa='{mess}' WHERE user_id='{call.message.chat.id}';")
                         i=6
@@ -323,7 +323,7 @@ while True:
                         bot.delete_message(call.message.chat.id,call.message.message_id)
                     except:
                         bot.answer_callback_query(callback_query_id=call.id, show_alert=True, text='Xatolik')
-                    print('>>>i =',i)
+                    #print('>>>i =',i)
                 elif call.data=='n':
                     example(m=call.message, pg='n', edit=call.message.message_id)
                 elif call.data=='p':
@@ -337,43 +337,44 @@ while True:
                     key.add(but1)
                     text = call.message.text#[call.message.text.rfind('\n')+1:]
                     sanoq=0
+                    ht = hashtags(text)
+                    if ht!=0:
+                        ht = ht.replace("#","")
+                        ht = ht.split(";\n")
                     for x in u:
                         if int(x)!=call.message.chat.id:
-                            try:
-                                mydb.execute(f"SELECT soxa FROM users WHERE user_id='{x}';")
-                                a = mydb.fetchone()[0].split(';')
-                                print('>>>a>>',a)
-                                ht = hashtags(text)
-                                print('>>>ht>>',ht)
-                                bor=False
-                                if ht!=0:
-                                    ht = ht.replace("#","")
-                                    ht = ht.split(";\n")
-                                    for y in ht:
-                                        if y in a:
-                                            bor=True
-                                if ht==0:
-                                    sanoq=-1    
-                                    break
-                                if bor:
+                            mydb.execute(f"SELECT soxa FROM users WHERE user_id='{x}';")
+                            a = mydb.fetchone()[0].split(';')
+                            #print('>>>a>>',a)
+                            #print('>>>ht>>',ht)
+                            bor=False
+                            if ht!=0:
+                                for y in ht:
+                                    if y in a:
+                                        bor=True
+                                        
+                            elif ht==0:
+                                sanoq=-1    
+                                break
+                            if bor:
+                                try:
                                     bot.send_message(int(x),f"\"{call.message.chat.first_name}\" dan\n{call.message.text}",reply_markup=key)
-                                    print('>>> ok_savol')
-                                    sanoq+=1
-                                else:
-                                    pass
-                            except:
-                                bot.send_message(call.message.chat.id,f"{x} id egasi mavjud emas")
-                                mydb.execute(f"UPDATE users SET onbot=0 WHERE user_id={x};")
-                                db.commit()
+                                    #print('>>> ok_savol')
+                                    sanoq=1
+                                except:
+                                    #bot.send_message(call.message.chat.id,f"{x} id egasi mavjud emas")
+                                    mydb.execute(f"UPDATE users SET onbot=0 WHERE user_id={x};")
+                                    db.commit()
+                            else:
+                                pass
+                    ma = ['Siz yo\'nalish tanlamagansiz!!','Siz tanlagan yo\'nalishda foydalanuvchi mavjud emas',"Savol barcha bot foydalanuvchilariga yuborildi"]
+                    bot.answer_callback_query(callback_query_id=call.id,show_alert=True, text=ma[sanoq+1])
+                        
                     db.close()
-                    savol_javob(mode="savol",user_id=call.message.chat.id,text=text)
-                    bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=call.message.text)
-                    if sanoq==0:
-                        bot.send_message(call.message.chat.id, 'Siz tanlagan yo\'nalishda foydalanuvchi mavjud emas')
-                    elif sanoq>=1:
-                        bot.answer_callback_query(callback_query_id=call.id,show_alert=False, text="Savol barcha bot foydalanuvchilariga yuborildi")
-                    else:
-                        bot.send_message(call.message.chat.id, 'Siz yo\'nalish tanlamagansiz!!')
+                    if sanoq+1==2:
+                        savol_javob(mode="savol",user_id=call.message.chat.id,text=text)
+                        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=call.message.text)
+                    
                 elif call.data=="Ok_javob":
                     db = connects()
                     mydb = db.cursor()
@@ -390,13 +391,13 @@ while True:
                         mydb.execute("SELECT id,savol,user_id FROM savol;")
                         z = mydb.fetchall()
                         for x in z:
-                            print(x, txt)
-                           #print(shifr(mode='shifr',t=txt))
+                            #print(x, txt)
+                            #print(shifr(mode='shifr',t=txt))
                             if x[1] in txt and x[2]!=str(call.message.chat.id):
                                 try:
                                     bot.send_message(int(x[2]),f"\"{call.message.chat.first_name}\" dan\n{call.message.text}",reply_markup=key)
                                     bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,text=call.message.text)
-                                    print('ok_javob')
+                                    #print('ok_javob')
                                     ok=True
                                 except:
                                     bot.send_message(call.message.chat.id,"savol egasi botda foydalanishni to\'xtatgan")
@@ -416,7 +417,7 @@ while True:
                             if x[1] in txt and x[2]!=str(call.message.chat.id):
                                 try:
                                     bot.send_message(int(x[2]),f"\"{call.message.chat.first_name}\" dan\n{call.message.text}",reply_markup=key)
-                                    print('ok_javob')
+                                    #print('ok_javob')
                                 except:
                                     bot.send_message(call.message.chat.id,"savol egasi botda foydalanishni to\'xtatgan")
                                     mydb.execute(f"UPDATE users SET onbot=0 WHERE user_id={x[2]};")
@@ -442,13 +443,13 @@ while True:
                     elif call.data=="Down":
                         k=-1
                     txt = call.message.text
-                    print('>>>',txt)
+                    #print('>>>',txt)
                     txt = shifr(mode='shifr', t=txt[txt.rfind(':\n')+3:])
-                    print('>>>',txt)
+                    #print('>>>',txt)
                     user_id=0
                     mydb.execute(f"SELECT * FROM javob WHERE javob='{txt}';")
                     y = mydb.fetchone()
-                    print(y)
+                    #print(y)
                     user_id = y[2]
                     
                     mydb.execute(f"SELECT * FROM users WHERE user_id='{user_id}';")
