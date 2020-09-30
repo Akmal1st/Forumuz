@@ -10,7 +10,7 @@ bot = telebot.TeleBot(mytoken)
 def soxa():
     s = [
         'Matematika','Fizika','Kimyo','Java','Python','C++',
-        'C#','Linux','Windows','MacOS','Biologiya','Geografiya'
+        'C#','Linux','Windows','MacOS','Biologiya','Geografiya',
         'Telegram_Bot','Android','Informatika'
         ]
     s.sort()
@@ -455,7 +455,7 @@ def tasdiq(call):
             user_id=0
             mydb.execute(f"SELECT * FROM javob WHERE javob='{txt}';")
             y = mydb.fetchone()
-            print('<<>>',y)
+            #print('<<>>',y)
             user_id = y[2]
 
             mydb.execute(f"SELECT * FROM users WHERE user_id='{user_id}';")
